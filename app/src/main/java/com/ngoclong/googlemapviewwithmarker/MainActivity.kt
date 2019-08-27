@@ -16,18 +16,22 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.LinearLayout
+
 
 class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListener,
     GoogleMap.OnMapLoadedCallback {
 
     companion object {
+        private val TAG = "MainActivity"
         private val MAPVIEW_BUNDLE_KEY = "MapViewBundleKey"
+        private val markerIconSize = 60
     }
 
     internal var infoWindow: ViewGroup? = null
     internal var tireBlock: ViewGroup? = null
-    internal var car_info: ViewGroup? = null
-    internal var car_name: TextView? = null
+    internal var carInfo: ViewGroup? = null
+    internal var carName: TextView? = null
     internal var closeBtn: Button? = null
     internal var callBtn: Button? = null
     internal var marker: Marker? = null
@@ -35,10 +39,6 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
     private var mMapView: MapView? = null
     internal var isShowCarInfo: Boolean = false
     internal var isMarkerCenter = true
-    val markerIconSize = 60
-
-    internal var TAG = "MainActivity"
-
     internal var latLng = LatLng(21.028511, 105.804817)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,11 +49,10 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY)
         }
+
         mMapView = findViewById(R.id.map) as MapView
         mMapView!!.onCreate(mapViewBundle)
-
         mMapView!!.getMapAsync(this)
-
     }
 
     public override fun onSaveInstanceState(outState: Bundle) {
@@ -107,7 +106,6 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
             false
         }
 
-
         val markerIcon = BitmapUtils.resizeMapIcons(this, R.drawable.car_icon, markerIconSize, markerIconSize)
         marker = map?.addMarker(MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(markerIcon)))
         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(marker?.position, 17f))
@@ -118,10 +116,10 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
     private fun setupCarInfoWindow() {
         infoWindow = layoutInflater.inflate(R.layout.car_infowindow, null) as ViewGroup
         tireBlock = infoWindow?.findViewById(R.id.tireLayout)
-        car_info = infoWindow?.findViewById(R.id.car_info)
+        carInfo = infoWindow?.findViewById(R.id.car_info)
         closeBtn = infoWindow?.findViewById(R.id.btn_onecar_exit)
         callBtn = infoWindow?.findViewById(R.id.btn_onecar_call)
-        car_name = infoWindow?.findViewById(R.id.car_name)
+        carName = infoWindow?.findViewById(R.id.car_name)
         tireBlock?.setOnTouchListener { v, event ->
             Toast.makeText(this@MainActivity, "Tire block clicked", Toast.LENGTH_SHORT).show()
             false
@@ -136,6 +134,11 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
             Toast.makeText(this@MainActivity, "Call btn clicked", Toast.LENGTH_SHORT).show()
             false
         }
+
+        val params = carName?.layoutParams as LinearLayout.LayoutParams
+        params.bottomMargin = markerIconSize
+        carName?.layoutParams = params
+
         baseLayout.addView(infoWindow)
         infoWindow?.visibility = View.INVISIBLE
     }
@@ -156,7 +159,7 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
         markerY = screenPosition?.y?.toFloat() ?: 0f
 
         infoWindow?.x = markerX - (infoWindow?.width?.toFloat()?.div(2f) ?: 0f)
-        infoWindow?.y = markerY - (tireBlock?.height?.toFloat() ?: 0f)  - (car_name?.height?.toFloat() ?: 0f) - markerIconSize/2
+        infoWindow?.y = markerY - (tireBlock?.height?.toFloat() ?: 0f)  - (carName?.height?.toFloat() ?: 0f) - markerIconSize/2
     }
 
     internal fun toggleCarInfo() {
@@ -171,22 +174,20 @@ class MainActivity : Activity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListe
         isShowCarInfo = false
         infoWindow?.visibility = View.VISIBLE
         tireBlock?.visibility = View.INVISIBLE
-        car_info?.visibility = View.INVISIBLE
+        carInfo?.visibility = View.INVISIBLE
     }
 
     internal fun showCarInfo() {
         infoWindow?.visibility = View.VISIBLE
         isShowCarInfo = true
         tireBlock?.visibility = View.VISIBLE
-        car_info?.visibility = View.VISIBLE
+        carInfo?.visibility = View.VISIBLE
     }
 
     override fun onMapLoaded() {
         locateInfoWindow()
         hideCarInfo()
     }
-
-
 }
 
 
